@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sindze Workshop — собрать заказ</title>
+<style>
+:root{--bg:#f2f0f6;--card:#fff;--ink:#27222f;--mute:#6b6478;--line:#ddd8e6;--acc:#a8286f;--accink:#fff;--soft:#f7e6ef;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141c;--card:#221e2a;--ink:#efeaf5;--mute:#a69fb4;--line:#3a3445;--acc:#e0609d;--accink:#1a1020;--soft:#35202d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17141c;--card:#221e2a;--ink:#efeaf5;--mute:#a69fb4;--line:#3a3445;--acc:#e0609d;--accink:#1a1020;--soft:#35202d;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+main{max-width:720px;margin:0 auto;padding:20px 16px}
+h1{font-size:1.9rem;line-height:1.15;margin:8px 0 6px;letter-spacing:-.02em}
+h2{font-size:1.1rem;margin:28px 0 10px}
+.lead{color:var(--mute);margin:0 0 6px;max-width:60ch}
+.part{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}
+.part>label.head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;font-weight:650}
+.part .sum{margin-left:auto;color:var(--acc);font-weight:600;font-variant-numeric:tabular-nums}
+.part.on{border-color:var(--acc)}
+.body{display:none;padding:2px 16px 16px;border-top:1px dashed var(--line)}
+.part.on .body{display:block}
+.row{margin-top:12px}
+.row>span,.row>label.t{display:block;font-size:.9rem;color:var(--mute);margin-bottom:4px}
+select,input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+textarea{min-height:110px;resize:vertical}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--acc);flex:none}
+.ex{display:flex;gap:10px;align-items:flex-start;padding:7px 0}
+.ex b{margin-left:auto;color:var(--mute);font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hint{font-size:.85rem;color:var(--mute);margin:4px 0 0}
+details{margin-top:10px;font-size:.9rem;color:var(--mute)}
+summary{cursor:pointer;color:var(--acc)}
+details p{margin:6px 0 0}
+.note{font-size:.85rem;color:var(--mute);margin-top:10px}
+.grid{display:grid;gap:12px}
+@media(min-width:600px){.grid{grid-template-columns:1fr 1fr}}
+.out{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:80px;overflow-x:auto}
+button{font:inherit;font-weight:650;border:0;border-radius:10px;padding:12px 18px;background:var(--acc);color:var(--accink);cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar div{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.bar small{color:var(--mute);display:block;line-height:1.2}
+.bar strong{font-size:1.3rem;font-variant-numeric:tabular-nums}
+.bar button{margin-left:auto}
+ul.rules{padding-left:18px;margin:8px 0}
+ul.rules li{margin:4px 0}
+a.btn{display:inline-block;font:inherit;font-weight:650;border-radius:10px;padding:12px 18px;background:var(--acc);color:var(--accink);text-decoration:none}
+a.btn:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.alt{background:transparent;color:var(--acc);border:1.5px solid var(--acc)}
+</style>
+</head>
+<body>
+<main>
+<h1>Соберите заказ</h1>
+<p class="lead">Отметьте, что нужно, и выберите параметры. Внизу появится готовое ТЗ с примерной ценой. Его можно отправить мастеру в личные сообщения в Telegram или ВКонтакте одной кнопкой.</p>
+
+<h2>Что делаем</h2>
+<div id="parts"></div>
+
+<h2>О заказе</h2>
+<div class="grid">
+<div class="row"><label class="t" for="who">Ваше имя или ник</label><input type="text" id="who"></div>
+<div class="row"><label class="t" for="chr">Персонаж или вид</label><input type="text" id="chr"></div>
+<div class="row"><label class="t" for="ref">Ссылки на референсы</label><input type="text" id="ref"><p class="hint">Референс картинкой? Отправьте ТЗ, а затем приложите картинку в тот же чат.</p></div>
+<div class="row"><label class="t" for="ctry">Страна доставки</label><input type="text" id="ctry"></div>
+</div>
+<div class="ex"><input type="checkbox" id="date"><label for="date">Нужно к конкретной дате (за это берётся доп. плата)</label></div>
+<div class="row" id="dateRow" hidden><label class="t" for="dateV">К какому числу</label><input type="text" id="dateV"></div>
+<div class="row"><label class="t" for="cm">Пожелания</label><textarea id="cm"></textarea></div>
+
+<h2>Ваше ТЗ</h2>
+<div class="out" id="out"></div>
+<p style="margin:12px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><a class="btn" id="tg" href="https://t.me/TheCatPlay" target="_blank" rel="noopener">Отправить в Telegram</a><button id="vk">Отправить во ВКонтакте</button><button id="copy" class="alt">Скопировать ТЗ</button><span id="ok" class="hint"></span></p>
+
+<h2>Как проходит заказ</h2>
+<ul class="rules">
+<li>Вы встаёте в очередь. Когда она подходит, мы обсуждаем детали и озвучиваем итоговую цену.</li>
+<li>После согласования вносится предоплата, обычно 30–50% от суммы.</li>
+<li>Срок отсчитывается от получения основных материалов и примерный: плюс-минус около месяца.</li>
+<li>Правки, которые усложняют работу, оплачиваются отдельно. Доставка в цену не входит.</li>
+<li>Гарантия на работу — 1 год: расходятся швы, трескается основа, слезает краска и подобные дефекты производства.</li>
+</ul>
+<p class="hint">Цена здесь примерная. Итоговую стоимость мастер называет после обсуждения деталей.</p>
+</main>
+
+<div class="bar"><div><span><small>Примерно</small><strong id="tot">от 0 ₽</strong></span><button id="go">К ТЗ</button></div></div>
+
+<script>
+var K=function(n){return Math.round(n*1000)};
+var R=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0')+'\u00a0₽'};
+var CI='Простой — ровные цветовые участки. Сложный — градиенты, полосы, пятна, мелкие узоры и сложные границы цветов.';
+var P=[
+{id:'head',n:'Голова',b:{'1-0':35,'2-0':40,'2-1':45,'3-0':45,'3-1':55,'4-0':50,'4-1':60},
+ s:[['Тип',[['Мульт',0],['Кемоно',0],['Реалистик',5],['Череп (от 15 000 ₽)',-20,1],['Протоген (от 15 000 ₽)',-20,1]],'Череп и протоген — от 15 000 ₽ за один цвет, дальше цвета считаются как у остальных.']],
+ x:[['Рога',3],['Доп. элементы',.5,'Шипы, пирсинг, магниты для смены украшений и подобное.',1],['Дополнительный язык',.5,'Только с тканевыми языками, силикон к этому не относится.'],['Накладные веки',.5,'Только с мультами, кемоно и черепами.',0,[0,1,3]],['Силиконовый язык',1,'Только в комплекте с реалистичным сьютом или черепом.',0,[2,3]],['Аэрография',1,'Плавные цветовые переходы краской из аэрографа.'],['Причёска',5]]},
+{id:'hands',n:'Перчатки',b:{'1-0':5,'2-0':6.5,'2-1':7,'3-0':7,'3-1':8,'4-0':9,'4-1':12},
+ s:[['Пальцы',[['4 пальца',0],['5 пальцев',.5]]]],
+ x:[['Отверстия для пальцев',2,'Эта модификация доступна не со всеми видами перчаток.'],['Печатные когти',.5],['Силиконовые подушечки',5],['Перчатки до локтя',1.5],['Манжеты',.5],['Новая выкройка',1.5]]},
+{id:'tail',n:'Хвост',b:{'1-0':1.5,'2-0':3,'2-1':4,'3-0':4,'3-1':5.5,'4-0':7,'4-1':9},
+ s:[['Длина',[['до 25 см',0],['25–75 см',2.5],['75–100 см',5],['от 100 см',7]]]],
+ x:[['Каркас',7,'Жёсткая основа внутри, чтобы хвост держал форму.'],['Шипы, доп. элементы',1],['Сложная форма',5,'Акульи хвосты, фигурные и подобное.']]},
+{id:'sleeves',n:'Рукава',b:{'1-0':7,'2-0':8,'2-1':9.5,'3-0':9,'3-1':12,'4-0':11,'4-1':15},
+ x:[['Если перчатки до локтя',-3]]},
+{id:'shoes',n:'Тапки',b:{'1-0':5,'2-0':7,'2-1':9.5,'3-0':9,'3-1':11,'4-0':11,'4-1':15},
+ s:[['Высота',[['Низкие',0],['Средние',4],['Высокие',9]],'Низкие — до лодыжки. Средние — до середины голени, посередине между коленом и стопой. Высокие — до колена.']],
+ x:[['5-й палец',1],['Пластиковые когти',.5],['Домашние тапки',1,'Полностью обшиваются мехом, стопа тоже, с рисунком лапки.'],['Сменная накладка',5,'Можно менять уличную и домашнюю подошвы.'],['Силиконовые пады',5,'',1],['Поролонка',5],['Сланцы',2,'Просто подошва со стропами, без визуальных дополнений. Сложная форма обсуждается в личных сообщениях.']],
+ note:'Тканевые когти и ТПУ-основа уже включены.'},
+{id:'body',n:'Комбез',b:{'1-0':80,'2-0':85,'2-1':95,'3-0':90,'3-1':100,'4-0':100,'4-1':120},s:[['Вариант',[['Диги ноги',0],['Слим',-30]],'Слим считается на 30 000 ₽ дешевле диги ног при том же числе цветов.']],note:'Со слим-версией возможны только низкие тапки, с диги ногами высокие тапки идут автоматически.',
+ x:[['Карман',2],['Молния с хвостом',3],['ТПУ вместо набивки',-15]]}
+];
+var C=[['1','1 цвет'],['2','2 цвета'],['3','3 цвета'],['4','4 и более цветов']];
+var $=function(i){return document.getElementById(i)};
+var host=$('parts');
+P.forEach(function(p){
+ var d=document.createElement('div');d.className='part';d.id='p_'+p.id;
+ var h='<label class="head"><input type="checkbox" data-on="'+p.id+'"> '+p.n+'<span class="sum" id="s_'+p.id+'"></span></label><div class="body">';
+ if(p.alt)h+='<div class="ex"><input type="checkbox" data-alt="'+p.id+'" id="a_'+p.id+'"><label for="a_'+p.id+'">'+p.alt[0]+'</label><b>'+R(K(p.alt[1]))+'</b></div>';
+ h+='<div data-col="'+p.id+'"><div class="row"><label class="t">Сколько цветов</label><select data-c="'+p.id+'">'+C.map(function(c){return '<option value="'+c[0]+'">'+c[1]+'</option>'}).join('')+'</select></div>';
+ h+='<div class="row" data-hardrow="'+p.id+'"><label class="t">Окрас</label><select data-h="'+p.id+'"><option value="0">Простой</option><option value="1">Сложный</option></select><details><summary>Чем отличается простой от сложного</summary><p>'+CI+'</p></details></div></div>';
+ (p.s||[]).forEach(function(s,i){h+='<div class="row"><label class="t">'+s[0]+'</label><select data-s="'+p.id+'" data-i="'+i+'">'+s[1].map(function(o,j){return '<option value="'+j+'">'+o[0]+(o[1]&&!o[2]?' ('+(o[1]<0?'−':'+')+R(K(Math.abs(o[1])))+')':'')+'</option>'}).join('')+'</select>'+(s[2]?'<p class="hint">'+s[2]+'</p>':'')+'</div>'});
+ h+='<div class="row">';
+ p.x.forEach(function(x,i){var id='x_'+p.id+'_'+i;h+='<div class="ex"><input type="checkbox" data-x="'+p.id+'" data-i="'+i+'"'+(x[4]?' data-ok="'+x[4].join(',')+'"':'')+' id="'+id+'"><label for="'+id+'">'+x[0]+(x[2]?'<span class="hint" style="display:block">'+x[2]+'</span>':'')+'</label><b>'+(x[1]<0?'−':'+')+(x[3]?'от ':'')+R(K(Math.abs(x[1])))+'</b></div>'});
+ h+='</div>'+(p.note?'<p class="note">'+p.note+'</p>':'')+'</div>';
+ d.innerHTML=h;host.appendChild(d);
+});
+function calc(){
+ var total=0,lines=[];
+ P.forEach(function(p){
+  var el=$('p_'+p.id),on=el.querySelector('[data-on]').checked;
+  el.classList.toggle('on',on);
+  var s0=el.querySelector('[data-s]'),alt=p.sk&&+s0.value===p.sk[0];
+  el.querySelectorAll('[data-ok]').forEach(function(c){var ok=c.dataset.ok.split(',').indexOf(String(s0.value))>-1;c.disabled=!ok;if(!ok)c.checked=false;c.closest('.ex').style.opacity=ok?1:.45});
+  var cs=el.querySelector('[data-c]'),hs=el.querySelector('[data-h]');
+  el.querySelector('[data-col]').style.display=alt?'none':'';
+  el.querySelector('[data-hardrow]').style.display=cs.value==='1'?'none':'';
+  if(!on){$('s_'+p.id).textContent='';return}
+  var hard=cs.value==='1'?0:+hs.value,sum,desc=[];
+  if(alt){sum=K(p.sk[1])}
+  else{sum=K(p.b[cs.value+'-'+hard]);desc.push(cs.options[cs.selectedIndex].text+(cs.value==='1'?'':(hard?', сложный окрас':', простой окрас')))}
+  el.querySelectorAll('[data-s]').forEach(function(s){var o=p.s[+s.dataset.i][1][+s.value];sum+=K(o[1]);desc.push(p.s[+s.dataset.i][0].toLowerCase()+': '+o[0])});
+  el.querySelectorAll('[data-x]:checked').forEach(function(x){var e=p.x[+x.dataset.i];sum+=K(e[1]);desc.push(e[0])});
+  $('s_'+p.id).textContent='от '+R(sum);
+  total+=sum;lines.push('• '+p.n+': '+desc.join('; ')+' — от '+R(sum));
+ });
+ $('tot').textContent='от '+R(total);
+ var v=function(i){return $(i).value.trim()};
+ var t='ТЗ на заказ — Sindze Workshop\n\n';
+ if(v('who'))t+='Заказчик: '+v('who')+'\n';
+ if(v('chr'))t+='Персонаж / вид: '+v('chr')+'\n';
+ if(v('ref'))t+='Референсы: '+v('ref')+'\n';
+ if(v('ctry'))t+='Страна доставки: '+v('ctry')+'\n';
+ t+='Срок: '+($('date').checked?'нужно к '+(v('dateV')||'конкретной дате')+' (доп. плата)':'без привязки к дате')+'\n\n';
+ t+=lines.length?'Состав:\n'+lines.join('\n')+'\n\nПримерная стоимость: от '+R(total)+'\n(итог называется после обсуждения деталей)':'Состав: пока ничего не выбрано';
+ if(v('cm'))t+='\n\nПожелания: '+v('cm');
+ $('out').textContent=t;
+ $('tg').href='https://t.me/TheCatPlay?text='+encodeURIComponent(t);
+ $('dateRow').hidden=!$('date').checked;
+}
+document.addEventListener('input',calc);document.addEventListener('change',calc);
+$('copy').onclick=function(){
+ var t=$('out').textContent;
+ var done=function(m){$('ok').textContent=m;setTimeout(function(){$('ok').textContent=''},3000)};
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){done('Скопировано')},function(){sel()})}else sel();
+ function sel(){var r=document.createRange();r.selectNodeContents($('out'));var s=getSelection();s.removeAllRanges();s.addRange(r);done('Выделено — нажмите «Копировать»')}
+};
+$('go').onclick=function(){$('out').scrollIntoView({behavior:'smooth',block:'center'})};
+$('vk').onclick=function(){
+ var t=$('out').textContent,m=$('ok');
+ window.open('https://vk.me/thecatplay05','_blank','noopener');
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){m.textContent='ТЗ скопировано. Вставьте его в открывшийся чат.'},function(){m.textContent='Не удалось скопировать. Нажмите «Скопировать ТЗ» и вставьте в чат.'})}else{m.textContent='Нажмите «Скопировать ТЗ» и вставьте в чат.'}
+};
+calc();
+</script>
+</body>
+</html>
